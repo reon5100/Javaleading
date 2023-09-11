@@ -31,8 +31,10 @@ import com.github.mikephil.charting.components.YAxis;
 public class MainActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> filePickerLauncher;
-    private TextView ResultText;
+    //private TextView ResultText;
     private LineChart ChartPPGdc;
+    private LineChart ChartPressure;
+    private LineChart ChartPPGRaw;
     private static final int Bt_select = R.id.bt_Lead;
     private static final int Bt_Reset = R.id.bt_Reset;
     private static final int yousosuu = 5000;
@@ -42,11 +44,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ChartPPGdc = findViewById(R.id.chart);
-        XAxis xAxis = ChartPPGdc.getXAxis();
-        YAxis yAxis = ChartPPGdc.getAxisLeft();
-        yAxis.setAxisMinimum(0f);
-        ResultText =findViewById(R.id.tv_result);
+        ChartPPGdc = findViewById(R.id.ChartPPGdc);
+        ChartPressure = findViewById(R.id.ChartPressure);
+        ChartPPGRaw = findViewById(R.id.ChartPPGRaw);
+
+
+        //ResultText =findViewById(R.id.tv_result);
         Button selectFileButton = findViewById(R.id.bt_Lead);
         Button resetFileButton = findViewById(R.id.bt_Reset);
         selectListener listener = new selectListener();
@@ -92,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 stringBuilder.append(line);
                 stringBuilder.append("\n");
             }
-            inputStream.close();
+
             String fileContents = stringBuilder.toString();
             String[] dataArray = fileContents.split("\n+|,");
             List<Integer> numbersList = new ArrayList<>();
@@ -162,21 +165,49 @@ public class MainActivity extends AppCompatActivity {
                 displayText.append("\n");
             }
             ResultText.setText(displayText.toString());*/
-            ArrayList<Entry> entries = new ArrayList<>();
+            ArrayList<Entry> presuureentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
-                entries.add(new Entry(msec[i],PPGdc[i]));
+                presuureentries.add(new Entry(msec[i],pressure[i]));
             }
-            LineDataSet dataSet = new LineDataSet(entries, "PPGdc");
-            dataSet.setColor(Color.BLUE);
-            dataSet.setDrawCircles(false);
-            dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-            LineData lineData = new LineData(dataSet);
+            LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
+            pressuredataSet.setColor(Color.BLUE);
+            pressuredataSet.setDrawCircles(false);
+            pressuredataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            LineData presuurelineData = new LineData(pressuredataSet);
+
+            ArrayList<Entry> PPGdcentries = new ArrayList<>();
+            for (int i = 0; i < msec.length; i++) {
+                PPGdcentries.add(new Entry(msec[i],PPGdc[i]));
+            }
+            LineDataSet PPGdcdataSet = new LineDataSet(PPGdcentries, "PPGdc");
+            PPGdcdataSet.setColor(Color.BLUE);
+            PPGdcdataSet.setDrawCircles(false);
+            PPGdcdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            LineData PPGdclineData = new LineData(PPGdcdataSet);
+
+            ArrayList<Entry> PPGrawentries = new ArrayList<>();
+            for (int i = 0; i < msec.length; i++) {
+                PPGrawentries.add(new Entry(msec[i],PPGraw[i]));
+            }
+            LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGraw");
+            PPGrawdataSet.setColor(Color.BLUE);
+            PPGrawdataSet.setDrawCircles(false);
+            PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            LineData PPGrawlineData = new LineData(PPGrawdataSet);
 
 // グラフにデータを設定
-            ChartPPGdc.setData(lineData);
+            ChartPressure.setData(presuurelineData);
+            ChartPPGdc.setData(PPGdclineData);
+            ChartPPGRaw.setData(PPGrawlineData);
+
+            ChartPressure.setDrawMarkers(true);
             ChartPPGdc.setDrawMarkers(true);
+            ChartPPGRaw.setDrawMarkers(true);
 // グラフの更新
+            ChartPressure.invalidate();
             ChartPPGdc.invalidate();
+            ChartPPGRaw.invalidate();
+
 
 
         } catch (IOException e) {
