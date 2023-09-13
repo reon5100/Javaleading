@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">解析アプリ（β）</string>
-    <string name="bt_lead">ファイルを読み込む</string>
-    <string name="bt_reset">リセット</string>
+    <string name="bt_open">OPEN</string>
+    <string name="bt_clear">CLEAR</string>
 </resources>

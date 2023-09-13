@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -22,11 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,9 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private LineChart ChartPPGdc;
     private LineChart ChartPressure;
     private LineChart ChartPPGRaw;
-    private static final int Bt_select = R.id.bt_Lead;
-    private static final int Bt_Reset = R.id.bt_Reset;
-    private static final int yousosuu = 5000;
+    private static final int Bt_select = R.id.bt_open;
+    private static final int Bt_Reset = R.id.bt_clear;
+    private static final int yousosuu = 6000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +48,27 @@ public class MainActivity extends AppCompatActivity {
         ChartPPGRaw = findViewById(R.id.ChartPPGRaw);
 
 
-        //ResultText =findViewById(R.id.tv_result);
-        Button selectFileButton = findViewById(R.id.bt_Lead);
-        Button resetFileButton = findViewById(R.id.bt_Reset);
+        XAxis PressurexAxis = ChartPressure.getXAxis();
+        PressurexAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        YAxis PressureyAxis = ChartPressure.getAxisLeft();
+        PressureyAxis.setDrawGridLines(false);
+
+        XAxis PPGdcxAxis = ChartPPGdc.getXAxis();
+        PPGdcxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        YAxis PPGdcyAxis = ChartPPGdc.getAxisLeft();
+        PPGdcyAxis.setDrawGridLines(false);
+
+        XAxis PPGrawxAxis = ChartPPGRaw.getXAxis();
+        PPGrawxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        YAxis PPGrawyAxis = ChartPPGRaw.getAxisLeft();
+        PPGrawyAxis.setDrawGridLines(false);
+
+        ChartPressure.clear();
+        ChartPPGdc.clear();
+        ChartPPGRaw.clear();
+
+        Button selectFileButton = findViewById(R.id.bt_open);
+        Button resetFileButton = findViewById(R.id.bt_clear);
         selectListener listener = new selectListener();
         selectFileButton.setOnClickListener(listener);
         resetFileButton.setOnClickListener(listener);
@@ -80,8 +97,12 @@ public class MainActivity extends AppCompatActivity {
                 filePickerLauncher.launch(intent);
             }
             else if(Id == Bt_Reset){
-                ChartPPGdc.notifyDataSetChanged();
+                ChartPressure.clear();
+                ChartPPGdc.clear();
+                ChartPPGRaw.clear();
+                ChartPressure.invalidate();
                 ChartPPGdc.invalidate();
+                ChartPPGRaw.invalidate();
             }
         }
     }
@@ -167,6 +188,9 @@ public class MainActivity extends AppCompatActivity {
             ResultText.setText(displayText.toString());*/
             ArrayList<Entry> presuureentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
+                if (i != 0 && msec[i] == 0){
+                    break;
+                }
                 presuureentries.add(new Entry(msec[i],pressure[i]));
             }
             LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
@@ -177,7 +201,10 @@ public class MainActivity extends AppCompatActivity {
 
             ArrayList<Entry> PPGdcentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
-                PPGdcentries.add(new Entry(msec[i],PPGdc[i]));
+                if (i != 0 && msec[i] == 0){
+                    break;
+                }
+                PPGdcentries.add(new Entry(msec[i], PPGdc[i]));
             }
             LineDataSet PPGdcdataSet = new LineDataSet(PPGdcentries, "PPGdc");
             PPGdcdataSet.setColor(Color.BLUE);
@@ -187,10 +214,13 @@ public class MainActivity extends AppCompatActivity {
 
             ArrayList<Entry> PPGrawentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
+                if (i != 0 && msec[i] == 0){
+                    break;
+                }
                 PPGrawentries.add(new Entry(msec[i],PPGraw[i]));
             }
             LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGraw");
-            PPGrawdataSet.setColor(Color.BLUE);
+            PPGrawdataSet.setColor(Color.RED);
             PPGrawdataSet.setDrawCircles(false);
             PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
             LineData PPGrawlineData = new LineData(PPGrawdataSet);
