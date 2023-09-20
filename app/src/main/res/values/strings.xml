@@ -2,4 +2,12 @@
     <string name="app_name">解析アプリ（β）</string>
     <string name="bt_open">OPEN</string>
     <string name="bt_clear">CLEAR</string>
+    <string name="tv_sec">sec</string>
+    <string name="bt_pressure">pressure</string>
+    <string name="bt_PPGdc">PPGdc</string>
+    <string name="bt_PPGac">PPGac\n</string>
+    <string name="tv_V">[V]</string>
+    <string name="tv_mmHg">[mmHg]</string>
+    <string name="back">×</string>
+
 </resources>

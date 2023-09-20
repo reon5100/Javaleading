@@ -41,7 +41,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/ChartPressure"
+        android:id="@+id/SelectChart"
         android:layout_width="0dp"
         android:layout_height="260dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -54,7 +54,7 @@
         android:layout_height="260dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/background"
-        app:layout_constraintTop_toBottomOf="@+id/ChartPressure" />
+        app:layout_constraintTop_toBottomOf="@+id/SelectChart" />
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/ChartPPGRaw"
         android:layout_width="0dp"

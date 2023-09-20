@@ -27,16 +27,29 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.LineData;
 
+
+
 public class MainActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> filePickerLauncher;
-    //private TextView ResultText;
     private LineChart ChartPPGdc;
     private LineChart ChartPressure;
     private LineChart ChartPPGRaw;
     private static final int Bt_select = R.id.bt_open;
     private static final int Bt_Reset = R.id.bt_clear;
+    private static final int Bt_Pressure = R.id.bt_Pressure;
+    private static final int Bt_PPGdc = R.id.bt_PPGdc;
+    private static final int Bt_PPGac = R.id.bt_PPGac;
     private static final int yousosuu = 6000;
+    private final ArrayList<Entry> datanull = new ArrayList<>();
+    private final LineDataSet Linedatasetnull = new LineDataSet(datanull, " ");
+    private final LineData Linedata = new LineData(Linedatasetnull);
+    public static int[] msec = new int[yousosuu];
+    public static int[] pressure = new int[yousosuu];
+    public static int[] PPGac = new int[yousosuu];
+    public static int[] PPGdc = new int[yousosuu];
+    public static int[] PPGraw = new int[yousosuu];
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,34 +57,55 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ChartPPGdc = findViewById(R.id.ChartPPGdc);
-        ChartPressure = findViewById(R.id.ChartPressure);
+        ChartPressure = findViewById(R.id.SelectChart);
         ChartPPGRaw = findViewById(R.id.ChartPPGRaw);
-
 
         XAxis PressurexAxis = ChartPressure.getXAxis();
         PressurexAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        YAxis PressureyAxis = ChartPressure.getAxisLeft();
-        PressureyAxis.setDrawGridLines(false);
+        PressurexAxis.setTextSize(20f);
+        YAxis PressureyAxis = ChartPressure.getAxisRight();
+        PressureyAxis.setEnabled(false);
+        PressureyAxis = ChartPressure.getAxisLeft();
+        PressureyAxis.setTextSize(20f);
+        PressureyAxis.setAxisMaximum(250f);
+
 
         XAxis PPGdcxAxis = ChartPPGdc.getXAxis();
         PPGdcxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        YAxis PPGdcyAxis = ChartPPGdc.getAxisLeft();
-        PPGdcyAxis.setDrawGridLines(false);
+        PPGdcxAxis.setTextSize(20f);
+        YAxis PPGdcyAxis = ChartPPGdc.getAxisRight();
+        PPGdcyAxis.setEnabled(false);
+        PPGdcyAxis = ChartPPGdc.getAxisLeft();
+        PPGdcyAxis.setTextSize(20f);
+        PPGdcyAxis.setAxisMaximum(4000f);
 
         XAxis PPGrawxAxis = ChartPPGRaw.getXAxis();
         PPGrawxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        YAxis PPGrawyAxis = ChartPPGRaw.getAxisLeft();
-        PPGrawyAxis.setDrawGridLines(false);
+        PPGrawxAxis.setTextSize(20f);
+        YAxis PPGrawyAxis = ChartPPGRaw.getAxisRight();
+        PPGrawyAxis.setEnabled(false);
+        PPGrawyAxis = ChartPPGRaw.getAxisLeft();
+        PPGrawyAxis.setTextSize(20f);
+        PPGrawyAxis.setAxisMaximum(2400f);
 
-        ChartPressure.clear();
-        ChartPPGdc.clear();
-        ChartPPGRaw.clear();
+        ChartPressure.setData(Linedata);
+        ChartPPGdc.setData(Linedata);
+        ChartPPGRaw.setData(Linedata);
+        ChartPressure.invalidate();
+        ChartPPGdc.invalidate();
+        ChartPPGRaw.invalidate();
 
         Button selectFileButton = findViewById(R.id.bt_open);
         Button resetFileButton = findViewById(R.id.bt_clear);
+        Button PressureButton = findViewById(R.id.bt_Pressure);
+        Button PPGdcButton = findViewById(R.id.bt_PPGdc);
+        Button PPGacButton = findViewById(R.id.bt_PPGac);
         selectListener listener = new selectListener();
         selectFileButton.setOnClickListener(listener);
         resetFileButton.setOnClickListener(listener);
+        PressureButton.setOnClickListener(listener);
+        PPGdcButton.setOnClickListener(listener);
+        PPGacButton.setOnClickListener(listener);
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*"); // すべてのファイルタイプを許可
@@ -84,28 +118,54 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
+
     private class selectListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            int Id =view.getId();
-            if(Id == Bt_select) {
+            int Id = view.getId();
+            if (Id == Bt_select) {
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("text/plain");
                 filePickerLauncher.launch(intent);
-            }
-            else if(Id == Bt_Reset){
+            } else if (Id == Bt_Reset) {
+                for (int i = 0; i < msec.length; i++){
+                    msec[i] = 0;
+                    pressure[i] = 0;
+                    PPGraw[i] = 0;
+                    PPGdc[i] = 0;
+                }
                 ChartPressure.clear();
                 ChartPPGdc.clear();
                 ChartPPGRaw.clear();
+                ChartPressure.setData(Linedata);
+                ChartPPGdc.setData(Linedata);
+                ChartPPGRaw.setData(Linedata);
                 ChartPressure.invalidate();
                 ChartPPGdc.invalidate();
                 ChartPPGRaw.invalidate();
+            } else if (Id == Bt_Pressure) {
+                Intent intent = new Intent(MainActivity.this, PressureGraphActivity.class);
+                intent.putExtra("msec", msec);
+                intent.putExtra("pressure", pressure);
+                startActivity(intent);
+            }
+            else if (Id == Bt_PPGdc) {
+                Intent intent = new Intent(MainActivity.this, PPGdcGraphActivity.class);
+                intent.putExtra("msec", msec);
+                intent.putExtra("PPGdc", PPGdc);
+                startActivity(intent);
+            }
+            else if (Id == Bt_PPGac) {
+                Intent intent = new Intent(MainActivity.this, PPGacGraphActivity.class);
+                intent.putExtra("msec", msec);
+                intent.putExtra("PPGac", PPGraw);
+                startActivity(intent);
             }
         }
     }
+
     private void displayTextFromFile(Uri fileUri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(fileUri);
@@ -133,44 +193,39 @@ public class MainActivity extends AppCompatActivity {
             // numbersListを配列に変換
             Integer[] numbersArray = numbersList.toArray(new Integer[0]);
             int count1 = 0;
-            int Msec=0,Pressure=0,PPGAc=0,PPGDc=0,PPGRaw=0;
-            int[] msec = new int[yousosuu];
-            int[] pressure = new int[yousosuu];
-            int[] PPGac = new int[yousosuu];
-            int[] PPGdc= new int[yousosuu];
-            int[] PPGraw= new int[yousosuu];
-            for (int number :numbersArray){
-                switch (count1%9){
+            int Msec = 0, Pressure = 0, PPGAc = 0, PPGDc = 0, PPGRaw = 0;
+            for (int number : numbersArray) {
+                switch (count1 % 9) {
                     case 0:
-                        msec[Msec]+=(number*86400000);
+                        msec[Msec] += (number * 86400000);
                         break;
                     case 1:
-                        msec[Msec]+=(number*3600000);
+                        msec[Msec] += (number * 3600000);
                         break;
                     case 2:
-                        msec[Msec]+=(number*60000);
+                        msec[Msec] += (number * 60000);
                         break;
                     case 3:
-                        msec[Msec]+=(number*1000);
+                        msec[Msec] += (number * 1000);
                         break;
                     case 4:
-                        msec[Msec]+=number;
+                        msec[Msec] += number;
                         Msec++;
                         break;
                     case 5:
-                        pressure[Pressure]+=number;
+                        pressure[Pressure] += number;
                         Pressure++;
                         break;
                     case 6:
-                        PPGac[PPGAc]+=number;
+                        PPGac[PPGAc] += number;
                         PPGAc++;
                         break;
                     case 7:
-                        PPGdc[PPGDc]+=number;
+                        PPGdc[PPGDc] += number;
                         PPGDc++;
                         break;
                     case 8:
-                        PPGraw[PPGRaw]+=number;
+                        PPGraw[PPGRaw] += number;
                         PPGRaw++;
                         break;
                     default:
@@ -178,30 +233,44 @@ public class MainActivity extends AppCompatActivity {
                 }
                 count1++;
             }
-
-           /* StringBuilder displayText = new StringBuilder();
-            //int count2 = 0;
-            for (int number : PPGraw) {
-                displayText.append(number);
-                displayText.append("\n");
-            }
-            ResultText.setText(displayText.toString());*/
-            ArrayList<Entry> presuureentries = new ArrayList<>();
-            for (int i = 0; i < msec.length; i++) {
-                if (i != 0 && msec[i] == 0){
+            /*int mode =0;
+            int[] peak = new int[yousosuu];
+            ArrayList<Entry> peakEntry = new ArrayList<>();
+            for (int i = 0; i < msec.length; i++){
+                if (i != 0 && msec[i] == 0) {
                     break;
                 }
-                presuureentries.add(new Entry(msec[i],pressure[i]));
+                if (mode == 1 && PPGraw[i] > PPGraw[i+1] && PPGraw[i] >= 1660){
+                    peak[i] = PPGraw[i];
+                    mode = 0;
+                }
+                else {
+                    peak[i] = 0;
+                }
+                if(PPGraw[i] < PPGraw[i+1]){
+                    mode = 1;
+                }
+                peakEntry.add(new Entry(msec[i], peak[i]));
+            }*/
+
+            ArrayList<Entry> presuureentries = new ArrayList<>();
+            for (int i = 0; i < msec.length; i++) {
+                if (i != 0 && msec[i] == 0) {
+                    break;
+                }
+                presuureentries.add(new Entry(msec[i], pressure[i]));
             }
             LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
+
+            //LineDataSet pressuredataSet = new LineDataSet(peakEntry, "Pressure");
             pressuredataSet.setColor(Color.BLUE);
             pressuredataSet.setDrawCircles(false);
-            pressuredataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            //pressuredataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
             LineData presuurelineData = new LineData(pressuredataSet);
 
             ArrayList<Entry> PPGdcentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
-                if (i != 0 && msec[i] == 0){
+                if (i != 0 && msec[i] == 0) {
                     break;
                 }
                 PPGdcentries.add(new Entry(msec[i], PPGdc[i]));
@@ -209,35 +278,33 @@ public class MainActivity extends AppCompatActivity {
             LineDataSet PPGdcdataSet = new LineDataSet(PPGdcentries, "PPGdc");
             PPGdcdataSet.setColor(Color.BLUE);
             PPGdcdataSet.setDrawCircles(false);
-            PPGdcdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            //PPGdcdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
             LineData PPGdclineData = new LineData(PPGdcdataSet);
 
             ArrayList<Entry> PPGrawentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
-                if (i != 0 && msec[i] == 0){
+                if (i != 0 && msec[i] == 0) {
                     break;
                 }
-                PPGrawentries.add(new Entry(msec[i],PPGraw[i]));
+                PPGrawentries.add(new Entry(msec[i], PPGraw[i]));
             }
-            LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGraw");
-            PPGrawdataSet.setColor(Color.RED);
+            LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGac");
+            PPGrawdataSet.setColor(Color.BLUE);
             PPGrawdataSet.setDrawCircles(false);
-            PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            //PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
             LineData PPGrawlineData = new LineData(PPGrawdataSet);
 
 // グラフにデータを設定
+
             ChartPressure.setData(presuurelineData);
             ChartPPGdc.setData(PPGdclineData);
             ChartPPGRaw.setData(PPGrawlineData);
 
-            ChartPressure.setDrawMarkers(true);
-            ChartPPGdc.setDrawMarkers(true);
-            ChartPPGRaw.setDrawMarkers(true);
+
 // グラフの更新
             ChartPressure.invalidate();
             ChartPPGdc.invalidate();
             ChartPPGRaw.invalidate();
-
 
 
         } catch (IOException e) {
@@ -248,10 +315,13 @@ public class MainActivity extends AppCompatActivity {
             showErrorMessage("エラー: " + ex.getMessage());
         }
     }
+
     private void showErrorMessage(String message) {
         // エラーメッセージをユーザーに表示する方法を実装してください。
         // 例えば、ダイアログボックス、Toastメッセージ、またはTextViewにエラーメッセージを表示できます。
         // 以下は、Toastメッセージを表示する例です。
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+
+
 }
