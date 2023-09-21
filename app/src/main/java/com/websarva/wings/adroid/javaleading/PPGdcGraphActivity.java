@@ -5,9 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -22,15 +23,18 @@ public class PPGdcGraphActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ppgac_graph);
         SelectPPGdcGraph = findViewById(R.id.SelectPPGdcChart);
+        XAxis PPGdcxAxis = SelectPPGdcGraph.getXAxis();
+        PPGdcxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        YAxis PPGdcyAxis = SelectPPGdcGraph.getAxisRight();
+        PPGdcyAxis.setEnabled(false);
+        PPGdcyAxis = SelectPPGdcGraph.getAxisLeft();
+        PPGdcyAxis.setAxisMaximum(4000f);
+
         int[] msec = getIntent().getIntArrayExtra("msec");
         int[] PPGdc = getIntent().getIntArrayExtra("PPGdc");
-        if (msec != null) {
-            setupChart(msec, PPGdc);
-        } else {
-            showToast("sec が null です。");
-            // sec が null の場合の処理
-            // 例: エラーメッセージを表示するなど
-        }
+
+        setupChart(msec, PPGdc);
+
     }
 
     private void setupChart(int[] msec, int[] PPGdc) {
@@ -51,8 +55,5 @@ public class PPGdcGraphActivity extends AppCompatActivity {
     }
     public void onBackButtonClick(View view){
         finish();
-    }
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

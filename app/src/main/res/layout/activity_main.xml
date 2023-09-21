@@ -10,18 +10,37 @@
 
     <TextView
         android:id="@+id/background"
-        android:layout_width="190dp"
+        android:layout_width="250dp"
         android:layout_height="0dp"
         android:background="#2196F3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/tv_msec2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_sec"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/background"
+        app:layout_constraintTop_toBottomOf="@+id/ChartPPGRaw" />
+
+    <TextView
+        android:id="@+id/tv_sec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_sec"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/background"
+        app:layout_constraintTop_toBottomOf="@+id/ChartPPGdc" />
 
     <Button
         android:id="@+id/bt_open"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="@string/bt_open"
         app:layout_constraintEnd_toEndOf="@+id/background"
@@ -33,6 +52,7 @@
         android:id="@+id/bt_clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="@string/bt_clear"
         app:layout_constraintEnd_toEndOf="@+id/background"
@@ -43,7 +63,8 @@
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/SelectChart"
         android:layout_width="0dp"
-        android:layout_height="260dp"
+        android:layout_height="240dp"
+        android:layout_marginStart="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/background"
         app:layout_constraintTop_toTopOf="parent" />
@@ -51,16 +72,96 @@
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/ChartPPGdc"
         android:layout_width="0dp"
-        android:layout_height="260dp"
+        android:layout_height="240dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/background"
         app:layout_constraintTop_toBottomOf="@+id/SelectChart" />
+
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/ChartPPGRaw"
         android:layout_width="0dp"
-        android:layout_height="260dp"
+        android:layout_height="240dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/background"
-        app:layout_constraintTop_toBottomOf="@+id/ChartPPGdc"/>
+        app:layout_constraintTop_toBottomOf="@+id/ChartPPGdc" />
+
+    <TextView
+        android:id="@+id/tv_mmHg"
+        android:layout_width="60dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="30dp"
+        android:rotation="-90"
+        android:text="@string/tv_mmHg"
+        app:layout_constraintEnd_toStartOf="@+id/SelectChart"
+        app:layout_constraintStart_toEndOf="@+id/background"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_V1"
+        android:layout_width="60dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="40dp"
+        android:rotation="-90"
+        android:text="@string/tv_V"
+        app:layout_constraintEnd_toStartOf="@+id/ChartPPGdc"
+        app:layout_constraintStart_toEndOf="@+id/background"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sec1" />
+
+    <TextView
+        android:id="@+id/tv_V2"
+        android:layout_width="60dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="40dp"
+        android:rotation="-90"
+        android:text="@string/tv_V"
+        app:layout_constraintEnd_toStartOf="@+id/ChartPPGRaw"
+        app:layout_constraintStart_toEndOf="@+id/background"
+        app:layout_constraintTop_toBottomOf="@+id/tv_sec" />
+
+    <TextView
+        android:id="@+id/tv_sec1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_sec"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/background"
+        app:layout_constraintTop_toBottomOf="@+id/SelectChart" />
+
+    <Button
+        android:id="@+id/bt_Pressure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/bt_pressure"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_open" />
+
+    <Button
+        android:id="@+id/bt_PPGdc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/bt_PPGdc"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_Pressure" />
+
+    <Button
+        android:id="@+id/bt_PPGac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/bt_PPGac"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_PPGdc" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
