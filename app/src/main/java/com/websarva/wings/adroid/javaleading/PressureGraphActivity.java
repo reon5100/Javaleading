@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -24,19 +25,27 @@ public class PressureGraphActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graph);
         SelectPressureGraph = findViewById(R.id.SelectPressureChart);
+
         XAxis PressurexAxis = SelectPressureGraph.getXAxis();
         PressurexAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PressurexAxis.setTextSize(20f);
+
         YAxis PressureyAxis = SelectPressureGraph.getAxisRight();
         PressureyAxis.setEnabled(true);
         PressureyAxis.setDrawAxisLine(true);
         PressureyAxis.setAxisMaximum(240f);
         PressureyAxis.setAxisMinimum(0f);
         PressureyAxis.setValueFormatter(new CustomYAxisValueFormatter());
+
         PressureyAxis = SelectPressureGraph.getAxisLeft();
         PressureyAxis.setAxisMaximum(240f);
         PressureyAxis.setTextSize(20f);
         PressureyAxis.setAxisMinimum(0f);
+
+        Legend Pressurelegend = SelectPressureGraph.getLegend();
+        Pressurelegend.setTextSize(20f); // テキストサイズを設定
+        Pressurelegend.setFormSize(10f); // 凡例エントリのサイズを設定
+
         int[] sec = getIntent().getIntArrayExtra("msec");
         int[] pressures = getIntent().getIntArrayExtra("pressure");
 

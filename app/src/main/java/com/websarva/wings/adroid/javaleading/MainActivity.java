@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -335,6 +336,17 @@ public class MainActivity extends AppCompatActivity {
             LineData PPGrawlineData = new LineData(PPGrawdataSet);
 
 // グラフにデータを設定
+            Legend Pressurelegend = ChartPressure.getLegend();
+            Pressurelegend.setTextSize(20f); // テキストサイズを設定
+            Pressurelegend.setFormSize(10f); // 凡例エントリのサイズを設定
+
+            Legend PPGdclegend = ChartPPGdc.getLegend();
+            PPGdclegend.setTextSize(20f); // テキストサイズを設定
+            PPGdclegend.setFormSize(10f); // 凡例エントリのサイズを設定
+
+            Legend PPGaclegend = ChartPPGRaw.getLegend();
+            PPGaclegend.setTextSize(20f); // テキストサイズを設定
+            PPGaclegend.setFormSize(10f); // 凡例エントリのサイズを設定
 
             ChartPressure.setData(presuurelineData);
             ChartPPGdc.setData(PPGdclineData);

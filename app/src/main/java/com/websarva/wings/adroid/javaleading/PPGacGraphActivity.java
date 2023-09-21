@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -25,8 +26,10 @@ public class PPGacGraphActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ppgac_graph2);
         SelectPPGacGraph = findViewById(R.id.SelectPPGacChart);
+
         XAxis PPGacxAxis = SelectPPGacGraph.getXAxis();
         PPGacxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+
         YAxis PPGacyAxis = SelectPPGacGraph.getAxisRight();
         PPGacyAxis.setEnabled(true);
         PPGacyAxis.setDrawAxisLine(true);
@@ -34,10 +37,15 @@ public class PPGacGraphActivity extends AppCompatActivity {
         PPGacxAxis.setTextSize(20f);
         PPGacyAxis.setAxisMinimum(0f);
         PPGacyAxis.setValueFormatter(new PPGacGraphActivity.CustomYAxisValueFormatter());
+
         PPGacyAxis = SelectPPGacGraph.getAxisLeft();
         PPGacyAxis.setAxisMaximum(2400f);
         PPGacyAxis.setTextSize(20f);
         PPGacyAxis.setAxisMinimum(0f);
+
+        Legend PPGaclegend = SelectPPGacGraph.getLegend();
+        PPGaclegend.setTextSize(20f); // テキストサイズを設定
+        PPGaclegend.setFormSize(10f); // 凡例エントリのサイズを設定
         int[] msec = getIntent().getIntArrayExtra("msec");
         int[] PPGac = getIntent().getIntArrayExtra("PPGac");
 
