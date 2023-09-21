@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         PressureyAxis.setDrawAxisLine(true);
         PressureyAxis.setAxisMaximum(240f);
 
-        PressureyAxis.setValueFormatter(new MainActivity.CustomYAxisValueFormatter());
+        PressureyAxis.setValueFormatter(new CustomYAxisValueFormatter());
         PressureyAxis = ChartPressure.getAxisLeft();
         PressureyAxis.setTextSize(20f);
         PressureyAxis.setAxisMaximum(240f);
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         PPGdcyAxis.setEnabled(true);
         PPGdcyAxis.setDrawAxisLine(true);
         PPGdcyAxis.setAxisMaximum(4000f);
-        PPGdcyAxis.setValueFormatter(new MainActivity.CustomYAxisValueFormatter());
+        PPGdcyAxis.setValueFormatter(new CustomYAxisValueFormatter());
         PPGdcyAxis = ChartPPGdc.getAxisLeft();
         PPGdcyAxis.setTextSize(20f);
         PPGdcyAxis.setAxisMaximum(4000f);
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         PPGrawyAxis.setEnabled(true);
         PPGrawyAxis.setDrawAxisLine(true);
         PPGrawyAxis.setAxisMaximum(2400f);
-        PPGrawyAxis.setValueFormatter(new MainActivity.CustomYAxisValueFormatter());
+        PPGrawyAxis.setValueFormatter(new CustomYAxisValueFormatter());
         PPGrawyAxis = ChartPPGRaw.getAxisLeft();
         PPGrawyAxis.setTextSize(20f);
         PPGrawyAxis.setAxisMaximum(2400f);
@@ -129,7 +129,12 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*"); // すべてのファイルタイプを許可
-
+        for (int i=0;i < msec.length;i++){
+            if (i!=0 && msec[i]!=0){
+                selectFileButton.setVisibility(View.INVISIBLE);
+                break;
+            }
+        }
         filePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK) {
                 if (result.getData() != null) {
@@ -139,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    public class CustomYAxisValueFormatter extends ValueFormatter {
+    public static class CustomYAxisValueFormatter extends ValueFormatter {
         @Override
         public String getAxisLabel(float value, AxisBase axis) {
             // ラベルを非表示にする
