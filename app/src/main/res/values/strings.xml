@@ -5,7 +5,7 @@
     <string name="tv_sec">[sec]</string>
     <string name="bt_pressure">pressure</string>
     <string name="bt_PPGdc">PPGdc</string>
-    <string name="bt_PPGac">PPGac\n</string>
+    <string name="bt_PPGac">PPGac</string>
     <string name="tv_V">[V]</string>
     <string name="tv_mmHg">[mmHg]</string>
     <string name="back">×</string>

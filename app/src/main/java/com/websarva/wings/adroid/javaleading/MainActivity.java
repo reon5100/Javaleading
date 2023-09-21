@@ -21,12 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.LineData;
-
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -35,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
     private LineChart ChartPPGdc;
     private LineChart ChartPressure;
     private LineChart ChartPPGRaw;
+    private Button selectFileButton;
+    private Button resetFileButton;
+    private Button PressureButton;
+    private Button PPGdcButton;
+    private Button PPGacButton;
     private static final int Bt_select = R.id.bt_open;
     private static final int Bt_Reset = R.id.bt_clear;
     private static final int Bt_Pressure = R.id.bt_Pressure;
@@ -64,17 +70,25 @@ public class MainActivity extends AppCompatActivity {
         PressurexAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PressurexAxis.setTextSize(20f);
         YAxis PressureyAxis = ChartPressure.getAxisRight();
-        PressureyAxis.setEnabled(false);
+        PressureyAxis.setEnabled(true);
+        PressureyAxis.setDrawAxisLine(true);
+        PressureyAxis.setAxisMaximum(240f);
+
+        PressureyAxis.setValueFormatter(new MainActivity.CustomYAxisValueFormatter());
         PressureyAxis = ChartPressure.getAxisLeft();
         PressureyAxis.setTextSize(20f);
-        PressureyAxis.setAxisMaximum(250f);
+        PressureyAxis.setAxisMaximum(240f);
+
 
 
         XAxis PPGdcxAxis = ChartPPGdc.getXAxis();
         PPGdcxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PPGdcxAxis.setTextSize(20f);
         YAxis PPGdcyAxis = ChartPPGdc.getAxisRight();
-        PPGdcyAxis.setEnabled(false);
+        PPGdcyAxis.setEnabled(true);
+        PPGdcyAxis.setDrawAxisLine(true);
+        PPGdcyAxis.setAxisMaximum(4000f);
+        PPGdcyAxis.setValueFormatter(new MainActivity.CustomYAxisValueFormatter());
         PPGdcyAxis = ChartPPGdc.getAxisLeft();
         PPGdcyAxis.setTextSize(20f);
         PPGdcyAxis.setAxisMaximum(4000f);
@@ -83,7 +97,10 @@ public class MainActivity extends AppCompatActivity {
         PPGrawxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PPGrawxAxis.setTextSize(20f);
         YAxis PPGrawyAxis = ChartPPGRaw.getAxisRight();
-        PPGrawyAxis.setEnabled(false);
+        PPGrawyAxis.setEnabled(true);
+        PPGrawyAxis.setDrawAxisLine(true);
+        PPGrawyAxis.setAxisMaximum(2400f);
+        PPGrawyAxis.setValueFormatter(new MainActivity.CustomYAxisValueFormatter());
         PPGrawyAxis = ChartPPGRaw.getAxisLeft();
         PPGrawyAxis.setTextSize(20f);
         PPGrawyAxis.setAxisMaximum(2400f);
@@ -95,11 +112,14 @@ public class MainActivity extends AppCompatActivity {
         ChartPPGdc.invalidate();
         ChartPPGRaw.invalidate();
 
-        Button selectFileButton = findViewById(R.id.bt_open);
-        Button resetFileButton = findViewById(R.id.bt_clear);
-        Button PressureButton = findViewById(R.id.bt_Pressure);
-        Button PPGdcButton = findViewById(R.id.bt_PPGdc);
-        Button PPGacButton = findViewById(R.id.bt_PPGac);
+        selectFileButton = findViewById(R.id.bt_open);
+        resetFileButton = findViewById(R.id.bt_clear);
+        PressureButton = findViewById(R.id.bt_Pressure);
+        PPGdcButton = findViewById(R.id.bt_PPGdc);
+        PPGacButton = findViewById(R.id.bt_PPGac);
+        PressureButton.setVisibility(View.INVISIBLE);
+        PPGacButton.setVisibility(View.INVISIBLE);
+        PPGdcButton.setVisibility(View.INVISIBLE);
         selectListener listener = new selectListener();
         selectFileButton.setOnClickListener(listener);
         resetFileButton.setOnClickListener(listener);
@@ -119,6 +139,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    public class CustomYAxisValueFormatter extends ValueFormatter {
+        @Override
+        public String getAxisLabel(float value, AxisBase axis) {
+            // ラベルを非表示にする
+            return "";
+        }
+    }
 
     private class selectListener implements View.OnClickListener {
         @Override
@@ -129,6 +156,10 @@ public class MainActivity extends AppCompatActivity {
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("text/plain");
                 filePickerLauncher.launch(intent);
+                selectFileButton.setVisibility(View.INVISIBLE);
+                PressureButton.setVisibility(View.VISIBLE);
+                PPGdcButton.setVisibility(View.VISIBLE);
+                PPGacButton.setVisibility(View.VISIBLE);
             } else if (Id == Bt_Reset) {
                 for (int i = 0; i < msec.length; i++){
                     msec[i] = 0;
@@ -145,6 +176,10 @@ public class MainActivity extends AppCompatActivity {
                 ChartPressure.invalidate();
                 ChartPPGdc.invalidate();
                 ChartPPGRaw.invalidate();
+                selectFileButton.setVisibility(View.VISIBLE);
+                PressureButton.setVisibility(View.INVISIBLE);
+                PPGdcButton.setVisibility(View.INVISIBLE);
+                PPGacButton.setVisibility(View.INVISIBLE);
             } else if (Id == Bt_Pressure) {
                 Intent intent = new Intent(MainActivity.this, PressureGraphActivity.class);
                 intent.putExtra("msec", msec);

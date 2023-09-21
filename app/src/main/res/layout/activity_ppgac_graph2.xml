@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:onClick="onBackButtonClick"
         android:text="@string/back"
-        android:textSize="24dp"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

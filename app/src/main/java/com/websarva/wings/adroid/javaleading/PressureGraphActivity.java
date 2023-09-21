@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.util.ArrayList;
 
@@ -24,10 +26,17 @@ public class PressureGraphActivity extends AppCompatActivity {
         SelectPressureGraph = findViewById(R.id.SelectPressureChart);
         XAxis PressurexAxis = SelectPressureGraph.getXAxis();
         PressurexAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        PressurexAxis.setTextSize(20f);
         YAxis PressureyAxis = SelectPressureGraph.getAxisRight();
-        PressureyAxis.setEnabled(false);
+        PressureyAxis.setEnabled(true);
+        PressureyAxis.setDrawAxisLine(true);
+        PressureyAxis.setAxisMaximum(240f);
+        PressureyAxis.setAxisMinimum(0f);
+        PressureyAxis.setValueFormatter(new CustomYAxisValueFormatter());
         PressureyAxis = SelectPressureGraph.getAxisLeft();
         PressureyAxis.setAxisMaximum(240f);
+        PressureyAxis.setTextSize(20f);
+        PressureyAxis.setAxisMinimum(0f);
         int[] sec = getIntent().getIntArrayExtra("msec");
         int[] pressures = getIntent().getIntArrayExtra("pressure");
 
@@ -50,6 +59,13 @@ public class PressureGraphActivity extends AppCompatActivity {
         SelectPressureGraph.setData(presuurelineData);
         SelectPressureGraph.invalidate();
 
+    }
+    public class CustomYAxisValueFormatter extends ValueFormatter {
+        @Override
+        public String getAxisLabel(float value, AxisBase axis) {
+            // ラベルを非表示にする
+            return "";
+        }
     }
     public void onBackButtonClick(View view){
         finish();
