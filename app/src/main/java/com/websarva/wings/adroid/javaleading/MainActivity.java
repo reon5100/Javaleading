@@ -51,11 +51,15 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<Entry> datanull = new ArrayList<>();
     private final LineDataSet Linedatasetnull = new LineDataSet(datanull, " ");
     private final LineData Linedata = new LineData(Linedatasetnull);
-    public static int[] msec = new int[yousosuu];
-    public static int[] pressure = new int[yousosuu];
-    public static int[] PPGac = new int[yousosuu];
-    public static int[] PPGdc = new int[yousosuu];
-    public static int[] PPGraw = new int[yousosuu];
+    private static int[] msec = new int[yousosuu];
+    private static int[] pressure = new int[yousosuu];
+    private static int[] PPGac = new int[yousosuu];
+    private static int[] PPGdc = new int[yousosuu];
+    private static int[] PPGraw = new int[yousosuu];
+    private static int[][] setPeakBottomData = new int[yousosuu][yousosuu];
+    private static int[] peak = new int[yousosuu];
+    private static int[] bottom = new int[yousosuu];
+
 
 
     @Override
@@ -274,25 +278,63 @@ public class MainActivity extends AppCompatActivity {
                 }
                 count1++;
             }
-            /*int mode =0;
-            int[] peak = new int[yousosuu];
+            int mode =0;
+            int Width = 6;
+            int peakBottomCount = 0;
+            //int skip = 0;
+            double nowPeak = 0;
+            double nowBottom = 10000;
             ArrayList<Entry> peakEntry = new ArrayList<>();
-            for (int i = 0; i < msec.length; i++){
-                if (i != 0 && msec[i] == 0) {
+            ArrayList<Entry> bottomEntry = new ArrayList<>();
+            for (int i = 500; i < msec.length; i++){
+                if (msec[i] == 0) {
                     break;
                 }
-                if (mode == 1 && PPGraw[i] > PPGraw[i+1] && PPGraw[i] >= 1660){
+                /*if (skip != 0){
+                    peak[i] = 0;
+                    bottom[i] = 0;
+                    skip--;
+                    continue;
+                }*/
+                if (pressure[i] >=30 && mode == 1 && PPGraw[i] > PPGraw[i+1] && PPGraw[i] >= nowPeak){
+                    nowPeak = (double)PPGraw[i]*0.95;
                     peak[i] = PPGraw[i];
+                    setPeakBottomData[peakBottomCount][0] = PPGraw[i];
+                    setPeakBottomData[peakBottomCount][1] = i;
+                    setPeakBottomData[peakBottomCount][2] = pressure[i];
                     mode = 0;
-                }
+                    //skip = 50;
+                    }
                 else {
                     peak[i] = 0;
                 }
-                if(PPGraw[i] < PPGraw[i+1]){
-                    mode = 1;
+                if(mode == 0 && PPGraw[i] < PPGraw[i+1]) {
+                    if (PPGraw[i] <= nowBottom) {
+                        nowBottom = (double) PPGraw[i] * 1.05;
+                        if ((pressure[i] >= 30 && pressure[i] <60)){
+                            bottom[i] = PPGraw[i];
+                            setPeakBottomData[peakBottomCount][3] = PPGraw[i];
+                            setPeakBottomData[peakBottomCount][4] = i;
+                            mode = 1;
+                        }
+                        if (pressure[i] >= 60  && (PPGraw[i + 1] - PPGraw[i]) >= Width) {
+                            bottom[i] = PPGraw[i];
+                            setPeakBottomData[peakBottomCount][3] = PPGraw[i];
+                            setPeakBottomData[peakBottomCount][4] = i;
+                            mode = 1;
+                        }
+                    }
                 }
                 peakEntry.add(new Entry(msec[i], peak[i]));
-            }*/
+                bottomEntry.add(new Entry(msec[i],bottom[i]));
+                peakBottomCount++;
+            }
+            LineDataSet peakdataSet = new LineDataSet(peakEntry,"peak");
+            LineDataSet bottomdataSet = new LineDataSet(bottomEntry,"bottom");
+
+            peakdataSet.setCircleColor(Color.RED);
+            bottomdataSet.setCircleColor(Color.GREEN);
+
 
             ArrayList<Entry> presuureentries = new ArrayList<>();
             for (int i = 0; i < msec.length; i++) {
@@ -302,7 +344,6 @@ public class MainActivity extends AppCompatActivity {
                 presuureentries.add(new Entry(msec[i], pressure[i]));
             }
             LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
-
             //LineDataSet pressuredataSet = new LineDataSet(peakEntry, "Pressure");
             pressuredataSet.setColor(Color.BLUE);
             pressuredataSet.setDrawCircles(false);
@@ -333,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
             PPGrawdataSet.setColor(Color.BLUE);
             PPGrawdataSet.setDrawCircles(false);
             //PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-            LineData PPGrawlineData = new LineData(PPGrawdataSet);
+            LineData PPGrawlineData = new LineData(PPGrawdataSet,peakdataSet,bottomdataSet);
 
 // グラフにデータを設定
             Legend Pressurelegend = ChartPressure.getLegend();
