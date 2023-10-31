@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private Button PressureButton;
     private Button PPGdcButton;
     private Button PPGacButton;
+    private EditText skipVariable;
     private static final int Bt_select = R.id.bt_open;
     private static final int Bt_Reset = R.id.bt_clear;
     private static final int Bt_Pressure = R.id.bt_Pressure;
@@ -53,12 +55,13 @@ public class MainActivity extends AppCompatActivity {
     private final LineData Linedata = new LineData(Linedatasetnull);
     private static int[] msec = new int[yousosuu];
     private static int[] pressure = new int[yousosuu];
-    private static int[] PPGac = new int[yousosuu];
+    //private static int[] PPGac = new int[yousosuu];
     private static int[] PPGdc = new int[yousosuu];
     private static int[] PPGraw = new int[yousosuu];
     private static int[][] setPeakBottomData = new int[yousosuu][yousosuu];
     private static int[] peak = new int[yousosuu];
     private static int[] bottom = new int[yousosuu];
+    private static float[] FIR_PPGac = new float[yousosuu];
 
 
 
@@ -70,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         ChartPPGdc = findViewById(R.id.ChartPPGdc);
         ChartPressure = findViewById(R.id.SelectChart);
         ChartPPGRaw = findViewById(R.id.ChartPPGRaw);
-
+        skipVariable = findViewById(R.id.skipVariable);
         XAxis PressurexAxis = ChartPressure.getXAxis();
         PressurexAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PressurexAxis.setTextSize(20f);
@@ -89,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         XAxis PPGdcxAxis = ChartPPGdc.getXAxis();
         PPGdcxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PPGdcxAxis.setTextSize(20f);
+
         YAxis PPGdcyAxis = ChartPPGdc.getAxisRight();
         PPGdcyAxis.setEnabled(true);
         PPGdcyAxis.setDrawAxisLine(true);
@@ -176,6 +180,11 @@ public class MainActivity extends AppCompatActivity {
                     pressure[i] = 0;
                     PPGraw[i] = 0;
                     PPGdc[i] = 0;
+                    peak[i] = 0;
+                    bottom[i] = 0;
+                    for (int j = 0; j < 5;j++){
+                        setPeakBottomData[i][j] = 0;
+                    }
                 }
                 ChartPressure.clear();
                 ChartPPGdc.clear();
@@ -238,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
             // numbersListを配列に変換
             Integer[] numbersArray = numbersList.toArray(new Integer[0]);
             int count1 = 0;
-            int Msec = 0, Pressure = 0, PPGAc = 0, PPGDc = 0, PPGRaw = 0;
+            int Msec = 0, Pressure = 0, PPGDc = 0, PPGRaw = 0;
             for (int number : numbersArray) {
                 switch (count1 % 9) {
                     case 0:
@@ -262,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
                         Pressure++;
                         break;
                     case 6:
-                        PPGac[PPGAc] += number;
-                        PPGAc++;
+                       /* PPGac[PPGAc] += number;
+                        PPGAc++;*/
                         break;
                     case 7:
                         PPGdc[PPGDc] += number;
@@ -281,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
             int mode =0;
             int Width = 6;
             int peakBottomCount = 0;
-            //int skip = 0;
+            int skip = 0;
             double nowPeak = 0;
             double nowBottom = 10000;
             ArrayList<Entry> peakEntry = new ArrayList<>();
@@ -290,27 +299,35 @@ public class MainActivity extends AppCompatActivity {
                 if (msec[i] == 0) {
                     break;
                 }
-                /*if (skip != 0){
+                if (skip != 0){
                     peak[i] = 0;
                     bottom[i] = 0;
                     skip--;
                     continue;
-                }*/
+                }
                 if (pressure[i] >=30 && mode == 1 && PPGraw[i] > PPGraw[i+1] && PPGraw[i] >= nowPeak){
-                    nowPeak = (double)PPGraw[i]*0.95;
+                    nowPeak = (double)PPGraw[i]*0.925;
                     peak[i] = PPGraw[i];
                     setPeakBottomData[peakBottomCount][0] = PPGraw[i];
                     setPeakBottomData[peakBottomCount][1] = i;
                     setPeakBottomData[peakBottomCount][2] = pressure[i];
                     mode = 0;
-                    //skip = 50;
+                    String skipVariableText = skipVariable.getText().toString();
+                    if(!skipVariableText.isEmpty()){
+                        try {
+                            skip =Integer.parseInt(skipVariableText);
+                        }catch (NumberFormatException e){
+                            e.printStackTrace();
+                            showErrorMessage("エラー: " + e.getMessage());
+                        }
+                    }
                     }
                 else {
                     peak[i] = 0;
                 }
                 if(mode == 0 && PPGraw[i] < PPGraw[i+1]) {
                     if (PPGraw[i] <= nowBottom) {
-                        nowBottom = (double) PPGraw[i] * 1.05;
+                        nowBottom = (double) PPGraw[i] * 1.125;
                         if ((pressure[i] >= 30 && pressure[i] <60)){
                             bottom[i] = PPGraw[i];
                             setPeakBottomData[peakBottomCount][3] = PPGraw[i];

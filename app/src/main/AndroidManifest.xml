@@ -15,7 +15,7 @@
         android:theme="@style/Theme.Javaleading"
         tools:targetApi="31">
         <activity
-            android:name=".PeakBottomGraphActivity"
+            android:name=".PeakBottomListActivity"
             android:exported="false" />
         <activity
             android:name=".PPGacGraphActivity"
