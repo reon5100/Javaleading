@@ -46,14 +46,14 @@ public class PPGacGraphActivity extends AppCompatActivity {
         Legend PPGaclegend = SelectPPGacGraph.getLegend();
         PPGaclegend.setTextSize(20f); // テキストサイズを設定
         PPGaclegend.setFormSize(10f); // 凡例エントリのサイズを設定
-        int[] msec = getIntent().getIntArrayExtra("msec");
-        int[] PPGac = getIntent().getIntArrayExtra("PPGac");
+        float[] msec = getIntent().getFloatArrayExtra("msec");
+        float[] PPGac = getIntent().getFloatArrayExtra("PPGac");
 
         setupChart(msec, PPGac);
 
     }
 
-    private void setupChart(int[] msec, int[] PPGac) {
+    private void setupChart(float[] msec, float[] PPGac) {
         ArrayList<Entry> PPGacentries = new ArrayList<>();
         for (int i = 0; i < msec.length; i++) {
             if (i != 0 && msec[i] == 0) {

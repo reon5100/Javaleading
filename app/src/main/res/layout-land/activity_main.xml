@@ -10,13 +10,22 @@
 
     <TextView
         android:id="@+id/background"
-        android:layout_width="250dp"
+        android:layout_width="260dp"
         android:layout_height="0dp"
         android:background="#2196F3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
+
+    <Button
+        android:id="@+id/bt_SecondDerivative"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="SDerivative"
+        app:layout_constraintStart_toEndOf="@+id/bt_Derivative"
+        app:layout_constraintTop_toBottomOf="@+id/bt_PPGac" />
 
     <TextView
         android:id="@+id/tv_msec2"
@@ -62,13 +71,13 @@
 
     <EditText
         android:id="@+id/skipVariable"
-        android:layout_width="100dp"
+        android:layout_width="240dp"
         android:layout_height="24dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="32dp"
         android:background="#ffffff"
-        android:hint="ピーク検出から何ミリ秒スキップするかを入力"
+        android:hint="何ミリ秒スキップするかを入力"
         android:inputType="number"
         android:text="30"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -178,5 +187,35 @@
         android:text="@string/bt_PPGac"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bt_PPGdc" />
+
+    <Button
+        android:id="@+id/bt_Derivative"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="Derivative"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_PPGac" />
+
+    <Button
+        android:id="@+id/bt_PeakBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/bt_PeakBottom"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bt_Derivative" />
+
+    <Button
+        android:id="@+id/bt_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/save"
+        app:layout_constraintStart_toStartOf="@+id/background"
+        app:layout_constraintTop_toBottomOf="@+id/bt_PeakBottom" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

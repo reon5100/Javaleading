@@ -46,13 +46,13 @@ public class PressureGraphActivity extends AppCompatActivity {
         Pressurelegend.setTextSize(20f); // テキストサイズを設定
         Pressurelegend.setFormSize(10f); // 凡例エントリのサイズを設定
 
-        int[] sec = getIntent().getIntArrayExtra("msec");
-        int[] pressures = getIntent().getIntArrayExtra("pressure");
+        float[] sec = getIntent().getFloatArrayExtra("msec");
+        float[] pressures = getIntent().getFloatArrayExtra("pressure");
 
             setupChart(sec, pressures);
     }
 
-    private void setupChart(int[] sec, int[] pressure){
+    private void setupChart(float[] sec, float[] pressure){
         ArrayList<Entry> presuureentries = new ArrayList<>();
         for (int i = 0; i < sec.length; i++) {
             if (i != 0 && sec[i] == 0) {

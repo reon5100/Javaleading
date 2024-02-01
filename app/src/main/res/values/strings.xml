@@ -6,7 +6,10 @@
     <string name="bt_pressure">pressure</string>
     <string name="bt_PPGdc">PPGdc</string>
     <string name="bt_PPGac">PPGac</string>
+    <string name="bt_PeakBottom">PeakBottom</string>
     <string name="tv_V">[V]</string>
     <string name="tv_mmHg">[mmHg]</string>
     <string name="back">×</string>
+    <string name="save">save</string>
+    <string name="tv_text">peak/peakTime/peakPressure/bottom/bottomTime</string>
 </resources>

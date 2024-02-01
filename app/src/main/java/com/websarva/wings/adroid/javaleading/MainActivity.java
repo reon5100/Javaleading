@@ -1,23 +1,35 @@
 package com.websarva.wings.adroid.javaleading;
 
+import static android.os.Environment.getExternalStoragePublicDirectory;
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,26 +55,43 @@ public class MainActivity extends AppCompatActivity {
     private Button PressureButton;
     private Button PPGdcButton;
     private Button PPGacButton;
+    private Button PeakBottomButton;
+    private Button DerivativeButton;
+    private Button SecondDerivativeButton;
+    private Button SaveButton;
     private EditText skipVariable;
     private static final int Bt_select = R.id.bt_open;
     private static final int Bt_Reset = R.id.bt_clear;
     private static final int Bt_Pressure = R.id.bt_Pressure;
     private static final int Bt_PPGdc = R.id.bt_PPGdc;
     private static final int Bt_PPGac = R.id.bt_PPGac;
+    private static final int Bt_Derivative = R.id.bt_Derivative;
+    private static final int Bt_SecondDerivative = R.id.bt_SecondDerivative;
+    private static final int Bt_PeakBottom = R.id.bt_PeakBottom;
+    private static final int Bt_save = R.id.bt_save;
+    private static final int ET_SkipTextView = R.id.skipVariable;
     private static final int yousosuu = 6000;
     private final ArrayList<Entry> datanull = new ArrayList<>();
     private final LineDataSet Linedatasetnull = new LineDataSet(datanull, " ");
     private final LineData Linedata = new LineData(Linedatasetnull);
-    private static int[] msec = new int[yousosuu];
-    private static int[] pressure = new int[yousosuu];
+    private static float[] msec = new float[yousosuu];
+    private static float[] pressure = new float[yousosuu];
     //private static int[] PPGac = new int[yousosuu];
-    private static int[] PPGdc = new int[yousosuu];
-    private static int[] PPGraw = new int[yousosuu];
-    private static int[][] setPeakBottomData = new int[yousosuu][yousosuu];
-    private static int[] peak = new int[yousosuu];
-    private static int[] bottom = new int[yousosuu];
-    private static float[] FIR_PPGac = new float[yousosuu];
+    private static float[] PPGdc = new float[yousosuu];
+    private static float[] PPGraw = new float[yousosuu];
+    private static float[][] setPeakBottomData = new float[yousosuu][yousosuu];
+    private static float[] peak = new float[yousosuu];
+    private static float[] bottom = new float[yousosuu];
+    private static float[] PPGacDerivative = new float[yousosuu];
+    private static float[] PPGacSecondDerivative = new float[yousosuu];
+    private static float[] SDPPGacA = new float[yousosuu];
+    private static float[] SDPPGacB = new float[yousosuu];
 
+    private static float[] SDPPGacC = new float[yousosuu];
+
+    private static float[] SDPPGacD = new float[yousosuu];
+
+    private static int skip;
 
 
     @Override
@@ -88,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
         PressureyAxis.setAxisMaximum(240f);
 
 
-
         XAxis PPGdcxAxis = ChartPPGdc.getXAxis();
         PPGdcxAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         PPGdcxAxis.setTextSize(20f);
@@ -108,11 +136,11 @@ public class MainActivity extends AppCompatActivity {
         YAxis PPGrawyAxis = ChartPPGRaw.getAxisRight();
         PPGrawyAxis.setEnabled(true);
         PPGrawyAxis.setDrawAxisLine(true);
-        PPGrawyAxis.setAxisMaximum(2400f);
+        //PPGrawyAxis.setAxisMaximum(2400f);
         PPGrawyAxis.setValueFormatter(new CustomYAxisValueFormatter());
         PPGrawyAxis = ChartPPGRaw.getAxisLeft();
         PPGrawyAxis.setTextSize(20f);
-        PPGrawyAxis.setAxisMaximum(2400f);
+        //PPGrawyAxis.setAxisMaximum(2400f);
 
         ChartPressure.setData(Linedata);
         ChartPPGdc.setData(Linedata);
@@ -126,6 +154,11 @@ public class MainActivity extends AppCompatActivity {
         PressureButton = findViewById(R.id.bt_Pressure);
         PPGdcButton = findViewById(R.id.bt_PPGdc);
         PPGacButton = findViewById(R.id.bt_PPGac);
+        DerivativeButton = findViewById(R.id.bt_Derivative);
+        SecondDerivativeButton = findViewById(R.id.bt_SecondDerivative);
+        PeakBottomButton = findViewById(R.id.bt_PeakBottom);
+        SaveButton = findViewById(R.id.bt_save);
+
         PressureButton.setVisibility(View.INVISIBLE);
         PPGacButton.setVisibility(View.INVISIBLE);
         PPGdcButton.setVisibility(View.INVISIBLE);
@@ -135,11 +168,26 @@ public class MainActivity extends AppCompatActivity {
         PressureButton.setOnClickListener(listener);
         PPGdcButton.setOnClickListener(listener);
         PPGacButton.setOnClickListener(listener);
+        DerivativeButton.setOnClickListener(listener);
+        SecondDerivativeButton.setOnClickListener(listener);
+        PeakBottomButton.setOnClickListener(listener);
+        skipVariable.setOnClickListener(listener);
+        SaveButton.setOnClickListener(listener);
+
+        String skipVariableText = skipVariable.getText().toString();
+        if (!skipVariableText.isEmpty()) {
+            try {
+                skip = Integer.parseInt(skipVariableText);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                showErrorMessage("エラー: " + e.getMessage());
+            }
+        }
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*"); // すべてのファイルタイプを許可
-        for (int i=0;i < msec.length;i++){
-            if (i!=0 && msec[i]!=0){
+        for (int i = 0; i < msec.length; i++) {
+            if (i != 0 && msec[i] != 0) {
                 selectFileButton.setVisibility(View.INVISIBLE);
                 break;
             }
@@ -153,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     public static class CustomYAxisValueFormatter extends ValueFormatter {
         @Override
         public String getAxisLabel(float value, AxisBase axis) {
@@ -162,6 +211,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class selectListener implements View.OnClickListener {
+
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onClick(View view) {
             int Id = view.getId();
@@ -175,49 +226,188 @@ public class MainActivity extends AppCompatActivity {
                 PPGdcButton.setVisibility(View.VISIBLE);
                 PPGacButton.setVisibility(View.VISIBLE);
             } else if (Id == Bt_Reset) {
-                for (int i = 0; i < msec.length; i++){
+                for (int i = 0; i < msec.length; i++) {
                     msec[i] = 0;
                     pressure[i] = 0;
                     PPGraw[i] = 0;
                     PPGdc[i] = 0;
                     peak[i] = 0;
                     bottom[i] = 0;
-                    for (int j = 0; j < 5;j++){
+                    PPGacDerivative[i] = 0;
+                    PPGacSecondDerivative[i] = 0;
+                    SDPPGacA[i] = 0;
+                    SDPPGacB[i] = 0;
+                    SDPPGacC[i] = 0;
+                    SDPPGacD[i] = 0;
+                    for (int j = 0; j < 5; j++) {
                         setPeakBottomData[i][j] = 0;
                     }
                 }
-                ChartPressure.clear();
-                ChartPPGdc.clear();
-                ChartPPGRaw.clear();
-                ChartPressure.setData(Linedata);
-                ChartPPGdc.setData(Linedata);
-                ChartPPGRaw.setData(Linedata);
-                ChartPressure.invalidate();
-                ChartPPGdc.invalidate();
-                ChartPPGRaw.invalidate();
-                selectFileButton.setVisibility(View.VISIBLE);
-                PressureButton.setVisibility(View.INVISIBLE);
-                PPGdcButton.setVisibility(View.INVISIBLE);
-                PPGacButton.setVisibility(View.INVISIBLE);
+                ChartPressure.clear();ChartPPGdc.clear();ChartPPGRaw.clear();ChartPressure.setData(Linedata);ChartPPGdc.setData(Linedata);ChartPPGRaw.setData(Linedata);
+                ChartPressure.invalidate();ChartPPGdc.invalidate();ChartPPGRaw.invalidate();selectFileButton.setVisibility(View.VISIBLE);PressureButton.setVisibility(View.INVISIBLE);PPGdcButton.setVisibility(View.INVISIBLE);PPGacButton.setVisibility(View.INVISIBLE);
             } else if (Id == Bt_Pressure) {
                 Intent intent = new Intent(MainActivity.this, PressureGraphActivity.class);
                 intent.putExtra("msec", msec);
                 intent.putExtra("pressure", pressure);
                 startActivity(intent);
-            }
-            else if (Id == Bt_PPGdc) {
+            } else if (Id == Bt_PPGdc) {
                 Intent intent = new Intent(MainActivity.this, PPGdcGraphActivity.class);
                 intent.putExtra("msec", msec);
                 intent.putExtra("PPGdc", PPGdc);
                 startActivity(intent);
-            }
-            else if (Id == Bt_PPGac) {
+            } else if (Id == Bt_PPGac) {
                 Intent intent = new Intent(MainActivity.this, PPGacGraphActivity.class);
                 intent.putExtra("msec", msec);
                 intent.putExtra("PPGac", PPGraw);
                 startActivity(intent);
+            } else if (Id == Bt_Derivative) {
+                ArrayList<Entry> PPGacDerivativeEntries = new ArrayList<>();
+                for (int i = 0; i < msec.length; i++) {
+                    if (i != 0 && msec[i] == 0) {
+                        break;
+                    }
+                    PPGacDerivativeEntries.add(new Entry(msec[i], PPGacDerivative[i]));
+                }
+                LineDataSet PPGacDerivativeDataSet = new LineDataSet(PPGacDerivativeEntries, "DPPGac");
+                PPGacDerivativeDataSet.setColor(Color.BLUE);
+                PPGacDerivativeDataSet.setDrawCircles(false);
+                LineData PPGacDerivativeData = new LineData(PPGacDerivativeDataSet);
+                ChartPPGRaw.setData(PPGacDerivativeData);
+                ChartPPGRaw.invalidate();
+            }else if (Id == Bt_SecondDerivative){
+                ArrayList<Entry> PPGacSecondDerivativeEntries = new ArrayList<>();
+                ArrayList<Entry> sdPPGac_A_Entries = new ArrayList<>();
+                ArrayList<Entry> sdPPGac_B_Entries = new ArrayList<>();
+                ArrayList<Entry> sdPPGac_C_Entries = new ArrayList<>();
+                ArrayList<Entry> sdPPGac_D_Entries = new ArrayList<>();
+                for (int i = 0; i < msec.length; i++) {
+                    if (msec[i] == 0) {
+                        break;
+                    }
+                    PPGacSecondDerivativeEntries.add(new Entry(msec[i], PPGacSecondDerivative[i]));
+
+                    if (SDPPGacA[i] != 0)
+                        sdPPGac_A_Entries.add(new Entry(msec[i], SDPPGacA[i]));
+                    if (SDPPGacB[i] != 0)
+                        sdPPGac_B_Entries.add(new Entry(msec[i], SDPPGacB[i]));
+                    if (SDPPGacC[i] != 0)
+                        sdPPGac_C_Entries.add(new Entry(msec[i], SDPPGacC[i]));
+                    if (SDPPGacD[i] != 0)
+                        sdPPGac_D_Entries.add(new Entry(msec[i], SDPPGacD[i]));
+
+                }
+
+                LineDataSet PPGacSecondDerivativeDataSet = new LineDataSet(PPGacSecondDerivativeEntries, "SDPPGac");
+                PPGacSecondDerivativeDataSet.setColor(Color.BLUE);
+                PPGacSecondDerivativeDataSet.setDrawCircles(false);
+
+
+                LineDataSet sdPPGac_A_DataSet =new LineDataSet(sdPPGac_A_Entries,"");
+                sdPPGac_A_DataSet.setColor(Color.TRANSPARENT);
+                sdPPGac_A_DataSet.setCircleColor(Color.RED);
+
+                LineDataSet sdPPGac_B_DataSet =new LineDataSet(sdPPGac_B_Entries,"");
+                sdPPGac_B_DataSet.setColor(Color.TRANSPARENT);
+                sdPPGac_B_DataSet.setCircleColor(Color.BLUE);
+
+                LineDataSet sdPPGac_C_DataSet =new LineDataSet(sdPPGac_C_Entries,"");
+                sdPPGac_C_DataSet.setColor(Color.TRANSPARENT);
+                sdPPGac_C_DataSet.setCircleColor(Color.GREEN);
+
+                LineDataSet sdPPGac_D_DataSet =new LineDataSet(sdPPGac_D_Entries,"");
+                sdPPGac_D_DataSet.setColor(Color.TRANSPARENT);
+                sdPPGac_D_DataSet.setCircleColor(Color.MAGENTA);
+
+                LineData PPGacSecondDerivativeData = new LineData(PPGacSecondDerivativeDataSet,sdPPGac_A_DataSet,sdPPGac_B_DataSet,sdPPGac_C_DataSet,sdPPGac_D_DataSet);
+
+                ChartPPGRaw.setData(PPGacSecondDerivativeData);
+                ChartPPGRaw.invalidate();
+            }else if (Id == ET_SkipTextView) {
+                int PreviousSkip = skip;
+                String skipVariableText = skipVariable.getText().toString();
+                if (!skipVariableText.isEmpty()) {
+                    try {
+                        skip = Integer.parseInt(skipVariableText);
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                        showErrorMessage("エラー: " + e.getMessage());
+                    }
+                }
+                if (PreviousSkip != skip) {
+                    for (int i = 0; i < msec.length; i++) {
+                        peak[i] = 0;
+                        bottom[i] = 0;
+                        for (int j = 0; j < 5; j++) {
+                            setPeakBottomData[i][j] = 0;
+                        }
+                    }
+                    showGraph();
+                }
+            else if (Id == Bt_save){
+/// 保存ファイル名
+                    String fileName = "hogehoge.txt";
+
+/// ファイル保存のためのピッカーUI起動
+                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");
+                    intent.putExtra(Intent.EXTRA_TITLE, fileName);
+                    //String line[] = new String[yousosuu];
+                    /*LocalDate currentDate = LocalDate.now();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("/yyyy-MM-dd.csv");
+                    String formattedDate = currentDate.format(formatter);
+
+                    try  {
+                        FileWriter writer = new FileWriter(getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath()+"test.txt",false);
+                        PrintWriter printWriter = new PrintWriter(new BufferedWriter(writer));
+                            for (int i = 0;i<PPGacSecondDerivative.length;i++) {
+                                line[i] = String.format("%s,%s", msec[i], PPGacSecondDerivative[i]);
+                                printWriter.println(line[i]);
+                        }
+                        printWriter.close();
+                        Log.i(TAG, "CSVファイルが保存されました");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "ファイルの保存中にエラーが発生しました");
+                    } */
+                }
+            } else if (Id == Bt_PeakBottom) {
+                Intent intent = new Intent(MainActivity.this, PeakBottomListActivity.class);
+                float[] peakData = new float[yousosuu];
+                float[] peakPressureData = new float[yousosuu];
+                float[] peakTimeData = new float[yousosuu];
+                float[] bottomData = new float[yousosuu];
+                float[] bottomTimeData = new float[yousosuu];
+                for (int i = 0; i < setPeakBottomData.length; i++) {
+                    for (int j = 0; j < 5; j++) {
+                        switch (j) {
+                            case 0:
+                                peakData[i] = setPeakBottomData[i][j];
+                                break;
+                            case 1:
+                                peakTimeData[i] = setPeakBottomData[i][j];
+                                break;
+                            case 2:
+                                peakPressureData[i] = setPeakBottomData[i][j];
+                                break;
+                            case 3:
+                                bottomData[i] = setPeakBottomData[i][j];
+                                break;
+                            case 4:
+                                bottomTimeData[i] = setPeakBottomData[i][j];
+                                break;
+                        }
+                    }
+                }
+                intent.putExtra("peak", peakData);
+                intent.putExtra("peakTime", peakTimeData);
+                intent.putExtra("peakPressure", peakPressureData);
+                intent.putExtra("bottom", bottomData);
+                intent.putExtra("bottomTime", bottomTimeData);
+                startActivity(intent);
             }
         }
+
     }
 
     private void displayTextFromFile(Uri fileUri) {
@@ -287,136 +477,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 count1++;
             }
-            int mode =0;
-            int Width = 6;
-            int peakBottomCount = 0;
-            int skip = 0;
-            double nowPeak = 0;
-            double nowBottom = 10000;
-            ArrayList<Entry> peakEntry = new ArrayList<>();
-            ArrayList<Entry> bottomEntry = new ArrayList<>();
-            for (int i = 500; i < msec.length; i++){
-                if (msec[i] == 0) {
-                    break;
-                }
-                if (skip != 0){
-                    peak[i] = 0;
-                    bottom[i] = 0;
-                    skip--;
-                    continue;
-                }
-                if (pressure[i] >=30 && mode == 1 && PPGraw[i] > PPGraw[i+1] && PPGraw[i] >= nowPeak){
-                    nowPeak = (double)PPGraw[i]*0.925;
-                    peak[i] = PPGraw[i];
-                    setPeakBottomData[peakBottomCount][0] = PPGraw[i];
-                    setPeakBottomData[peakBottomCount][1] = i;
-                    setPeakBottomData[peakBottomCount][2] = pressure[i];
-                    mode = 0;
-                    String skipVariableText = skipVariable.getText().toString();
-                    if(!skipVariableText.isEmpty()){
-                        try {
-                            skip =Integer.parseInt(skipVariableText);
-                        }catch (NumberFormatException e){
-                            e.printStackTrace();
-                            showErrorMessage("エラー: " + e.getMessage());
-                        }
-                    }
-                    }
-                else {
-                    peak[i] = 0;
-                }
-                if(mode == 0 && PPGraw[i] < PPGraw[i+1]) {
-                    if (PPGraw[i] <= nowBottom) {
-                        nowBottom = (double) PPGraw[i] * 1.125;
-                        if ((pressure[i] >= 30 && pressure[i] <60)){
-                            bottom[i] = PPGraw[i];
-                            setPeakBottomData[peakBottomCount][3] = PPGraw[i];
-                            setPeakBottomData[peakBottomCount][4] = i;
-                            mode = 1;
-                        }
-                        if (pressure[i] >= 60  && (PPGraw[i + 1] - PPGraw[i]) >= Width) {
-                            bottom[i] = PPGraw[i];
-                            setPeakBottomData[peakBottomCount][3] = PPGraw[i];
-                            setPeakBottomData[peakBottomCount][4] = i;
-                            mode = 1;
-                        }
-                    }
-                }
-                peakEntry.add(new Entry(msec[i], peak[i]));
-                bottomEntry.add(new Entry(msec[i],bottom[i]));
-                peakBottomCount++;
-            }
-            LineDataSet peakdataSet = new LineDataSet(peakEntry,"peak");
-            LineDataSet bottomdataSet = new LineDataSet(bottomEntry,"bottom");
-
-            peakdataSet.setCircleColor(Color.RED);
-            bottomdataSet.setCircleColor(Color.GREEN);
-
-
-            ArrayList<Entry> presuureentries = new ArrayList<>();
-            for (int i = 0; i < msec.length; i++) {
-                if (i != 0 && msec[i] == 0) {
-                    break;
-                }
-                presuureentries.add(new Entry(msec[i], pressure[i]));
-            }
-            LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
-            //LineDataSet pressuredataSet = new LineDataSet(peakEntry, "Pressure");
-            pressuredataSet.setColor(Color.BLUE);
-            pressuredataSet.setDrawCircles(false);
-            //pressuredataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-            LineData presuurelineData = new LineData(pressuredataSet);
-
-            ArrayList<Entry> PPGdcentries = new ArrayList<>();
-            for (int i = 0; i < msec.length; i++) {
-                if (i != 0 && msec[i] == 0) {
-                    break;
-                }
-                PPGdcentries.add(new Entry(msec[i], PPGdc[i]));
-            }
-            LineDataSet PPGdcdataSet = new LineDataSet(PPGdcentries, "PPGdc");
-            PPGdcdataSet.setColor(Color.BLUE);
-            PPGdcdataSet.setDrawCircles(false);
-            //PPGdcdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-            LineData PPGdclineData = new LineData(PPGdcdataSet);
-
-            ArrayList<Entry> PPGrawentries = new ArrayList<>();
-            for (int i = 0; i < msec.length; i++) {
-                if (i != 0 && msec[i] == 0) {
-                    break;
-                }
-                PPGrawentries.add(new Entry(msec[i], PPGraw[i]));
-            }
-            LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGac");
-            PPGrawdataSet.setColor(Color.BLUE);
-            PPGrawdataSet.setDrawCircles(false);
-            //PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-            LineData PPGrawlineData = new LineData(PPGrawdataSet,peakdataSet,bottomdataSet);
-
-// グラフにデータを設定
-            Legend Pressurelegend = ChartPressure.getLegend();
-            Pressurelegend.setTextSize(20f); // テキストサイズを設定
-            Pressurelegend.setFormSize(10f); // 凡例エントリのサイズを設定
-
-            Legend PPGdclegend = ChartPPGdc.getLegend();
-            PPGdclegend.setTextSize(20f); // テキストサイズを設定
-            PPGdclegend.setFormSize(10f); // 凡例エントリのサイズを設定
-
-            Legend PPGaclegend = ChartPPGRaw.getLegend();
-            PPGaclegend.setTextSize(20f); // テキストサイズを設定
-            PPGaclegend.setFormSize(10f); // 凡例エントリのサイズを設定
-
-            ChartPressure.setData(presuurelineData);
-            ChartPPGdc.setData(PPGdclineData);
-            ChartPPGRaw.setData(PPGrawlineData);
-
-
-// グラフの更新
-            ChartPressure.invalidate();
-            ChartPPGdc.invalidate();
-            ChartPPGRaw.invalidate();
-
-
+            showGraph();
+            PPGacDerivative = Derivative(FIRFilter(PPGraw));
+            PPGacSecondDerivative = Derivative(FIRFilter(PPGacDerivative));
+            SDPPGacDetection(PPGacSecondDerivative);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception ex) {
@@ -424,6 +488,135 @@ public class MainActivity extends AppCompatActivity {
             ex.printStackTrace();
             showErrorMessage("エラー: " + ex.getMessage());
         }
+
+    }
+
+    private void showGraph() {
+        int mode = 1;
+        int Width = 6;
+        int peakBottomCount = 0;
+        float nowPeak = 0;
+        float nowBottom = 10000;
+        skip =0;
+        ArrayList<Entry> peakEntry = new ArrayList<>();
+        ArrayList<Entry> bottomEntry = new ArrayList<>();
+        for (int i = 600; i < msec.length; i++) {
+            if (msec[i] == 0.0) {
+                break;
+            }
+            if (skip != 0) {
+                skip--;
+                continue;
+            }
+            if (pressure[i] >= 30.0 && mode == 1 && PPGraw[i] > PPGraw[i + 1] && PPGraw[i] >= nowPeak) {
+                nowPeak = (float) (PPGraw[i] * 0.75);
+                peak[i] = PPGraw[i];
+                setPeakBottomData[peakBottomCount][0] = PPGraw[i];
+                setPeakBottomData[peakBottomCount][1] = msec[i];
+                setPeakBottomData[peakBottomCount][2] = pressure[i];
+                mode = 0;
+                String skipVariableText = skipVariable.getText().toString();
+                if (!skipVariableText.isEmpty()) {
+                    try {
+                        skip = Integer.parseInt(skipVariableText);
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                        showErrorMessage("エラー: " + e.getMessage());
+                    }
+                }
+            }
+            if (mode == 0 && PPGraw[i] < PPGraw[i + 1]) {
+                if (PPGraw[i] <= nowBottom) {
+                    nowBottom = (float) (PPGraw[i] * 1.25);
+                    if ((pressure[i] >= 30 && pressure[i] < 60)) {
+                        bottom[i] = PPGraw[i];
+                        setPeakBottomData[peakBottomCount][3] = PPGraw[i];
+                        setPeakBottomData[peakBottomCount][4] = msec[i];
+                        mode = 1;
+                        peakBottomCount++;
+                    }
+                    if (pressure[i] >= 60.0 && (PPGraw[i + 1] - PPGraw[i]) >= Width) {
+                        bottom[i] = PPGraw[i];
+                        setPeakBottomData[peakBottomCount][3] = PPGraw[i];
+                        setPeakBottomData[peakBottomCount][4] = msec[i];
+                        mode = 1;
+                        peakBottomCount++;
+                    }
+                }
+            }
+            if (peak[i] != 0)
+                peakEntry.add(new Entry(msec[i], peak[i]));
+            if (bottom[i] != 0)
+                bottomEntry.add(new Entry(msec[i], bottom[i]));
+
+        }
+        LineDataSet peakdataSet = new LineDataSet(peakEntry,"");
+        LineDataSet bottomdataSet = new LineDataSet(bottomEntry, "");
+
+        peakdataSet.setCircleColor(Color.RED);
+        peakdataSet.setColor(Color.TRANSPARENT);
+        bottomdataSet.setCircleColor(Color.GREEN);
+        bottomdataSet.setColor(Color.TRANSPARENT);
+
+
+        ArrayList<Entry> presuureentries = new ArrayList<>();
+        for (int i = 0; i < msec.length; i++) {
+            if (i != 0 && msec[i] == 0) {
+                break;
+            }
+            presuureentries.add(new Entry(msec[i], pressure[i]));
+        }
+        LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
+        pressuredataSet.setColor(Color.BLUE);
+        pressuredataSet.setDrawCircles(false);
+        LineData presuurelineData = new LineData(pressuredataSet);
+
+        ArrayList<Entry> PPGdcentries = new ArrayList<>();
+        for (int i = 0; i < msec.length; i++) {
+            if (i != 0 && msec[i] == 0) {
+                break;
+            }
+            PPGdcentries.add(new Entry(msec[i], PPGdc[i]));
+        }
+        LineDataSet PPGdcdataSet = new LineDataSet(PPGdcentries, "PPGdc");
+        PPGdcdataSet.setColor(Color.BLUE);
+        PPGdcdataSet.setDrawCircles(false);
+        LineData PPGdclineData = new LineData(PPGdcdataSet);
+        ArrayList<Entry> PPGrawentries = new ArrayList<>();
+        for (int i = 0; i < msec.length; i++) {
+            if (i != 0 && msec[i] == 0) {
+                break;
+            }
+            PPGrawentries.add(new Entry(msec[i], PPGraw[i]));
+        }
+        LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGac");
+        PPGrawdataSet.setColor(Color.BLUE);
+        PPGrawdataSet.setDrawCircles(false);
+        //PPGrawdataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        LineData PPGrawlineData = new LineData(PPGrawdataSet, peakdataSet, bottomdataSet);
+
+// グラフにデータを設定
+        Legend Pressurelegend = ChartPressure.getLegend();
+        Pressurelegend.setTextSize(20f); // テキストサイズを設定
+        Pressurelegend.setFormSize(10f); // 凡例エントリのサイズを設定
+
+        Legend PPGdclegend = ChartPPGdc.getLegend();
+        PPGdclegend.setTextSize(20f); // テキストサイズを設定
+        PPGdclegend.setFormSize(10f); // 凡例エントリのサイズを設定
+
+        Legend PPGaclegend = ChartPPGRaw.getLegend();
+        PPGaclegend.setTextSize(20f); // テキストサイズを設定
+        PPGaclegend.setFormSize(10f); // 凡例エントリのサイズを設定
+
+        ChartPressure.setData(presuurelineData);
+        ChartPPGdc.setData(PPGdclineData);
+        ChartPPGRaw.setData(PPGrawlineData);
+
+
+// グラフの更新
+        ChartPressure.invalidate();
+        ChartPPGdc.invalidate();
+        ChartPPGRaw.invalidate();
     }
 
     private void showErrorMessage(String message) {
@@ -433,5 +626,74 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    public float[] Derivative(float[] PPGacData) {
+        float[] derivativeArray = new float[yousosuu];
+        for (int i = 1; i < msec.length -1; i++) {// 中心差分を使用
+            derivativeArray[i] = (float) ((PPGacData[i + 1] - PPGacData[i - 1]) / ((msec[i + 1] - msec[i - 1]) * 0.001));
+        }
+        return derivativeArray;
+    }
 
+    public float[] FIRFilter(float[] PPGacData){
+        float samplingFrequency = 100;
+        float cutoffFrequency = 12;
+        float omega = (float) (2 * Math.PI * cutoffFrequency/samplingFrequency);
+        float alpha = (float) Math.sin(omega)/(2);
+        float a0 = alpha + 1;
+        float a1 = (float) (2 * Math.cos(omega));
+        float a2 = 1 - alpha;
+        float b0 = (float) ((1-Math.cos(omega))/2);
+        float b1 = (float) (1 - Math.cos(omega));
+        float b2 = (float) (1 - Math.cos(omega));
+        float[] previousOutput = {0, 0};
+        float[] previousInput =  {0, 0};
+        float[] FIRFilterArray = new float[yousosuu];
+        for (int i = 0;i < msec.length;i++){
+            FIRFilterArray[i] = (b0/a0*PPGacData[i])+(b1/a0*previousInput[0])+(b2/a0*previousInput[1])-(a1/a0*previousOutput[0])-(a2/a0*previousOutput[1]);
+            previousInput[1] = previousInput[0];
+            previousInput[0] = PPGacData[i];
+            previousOutput[1] = previousOutput[0];
+            previousOutput[0] = FIRFilterArray[i];
+        }
+        return FIRFilterArray;
+    }
+    public void SDPPGacDetection(float[] SDPPGac){
+        int mode=1;
+        float now_A=5000,now_B=0,now_C=200,now_D=0;
+        for (int i=1000;i<=msec.length;i++){
+            if (msec[i]==0){
+                break;
+            }
+                switch (mode) {
+                    case (1):
+                        if (SDPPGac[i] > SDPPGac[i+1]  && SDPPGac[i] >=now_A) {
+                            now_A =  (float)(SDPPGac[i]*0.7);
+                            SDPPGacA[i] = SDPPGac[i];
+                            mode = 2;
+                        }
+                        break;
+                    case (2):
+                        if (SDPPGac[i] < SDPPGac[i+1] && SDPPGac[i] <= now_B) {
+                            now_B = (float) (SDPPGac[i]*0.8);
+                            SDPPGacB[i] = SDPPGac[i];
+                            mode = 3;
+                        }
+                        break;
+                    case (3):
+                        if (SDPPGac[i] > SDPPGac[i+1] &&  SDPPGac[i] >= now_D && SDPPGac[i] < now_A) {
+                            now_C = (float)(SDPPGac[i]*0.8);
+                            SDPPGacC[i] = SDPPGac[i];
+                            mode = 4;
+                        }
+                        break;
+                    case (4):
+                        if (SDPPGac[i] < SDPPGac[i+1] &&  SDPPGac[i] <= now_C && SDPPGac[i] > now_B) {
+                            now_D = (float)(SDPPGac[i]*0.8);
+                            SDPPGacD[i] = SDPPGac[i];
+                            mode = 1;
+                        }
+                        break;
+                }
+        }
+    }
 }
