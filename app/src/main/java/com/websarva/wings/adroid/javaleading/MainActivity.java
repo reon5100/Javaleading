@@ -74,22 +74,22 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<Entry> datanull = new ArrayList<>();
     private final LineDataSet Linedatasetnull = new LineDataSet(datanull, " ");
     private final LineData Linedata = new LineData(Linedatasetnull);
-    private static float[] msec = new float[yousosuu];
-    private static float[] pressure = new float[yousosuu];
+    private static double[] msec = new double[yousosuu];
+    private static double[] pressure = new double[yousosuu];
     //private static int[] PPGac = new int[yousosuu];
-    private static float[] PPGdc = new float[yousosuu];
-    private static float[] PPGraw = new float[yousosuu];
-    private static float[][] setPeakBottomData = new float[yousosuu][yousosuu];
-    private static float[] peak = new float[yousosuu];
-    private static float[] bottom = new float[yousosuu];
-    private static float[] PPGacDerivative = new float[yousosuu];
-    private static float[] PPGacSecondDerivative = new float[yousosuu];
-    private static float[] SDPPGacA = new float[yousosuu];
-    private static float[] SDPPGacB = new float[yousosuu];
+    private static double[] PPGdc = new double[yousosuu];
+    private static double[] PPGraw = new double[yousosuu];
+    private static double[][] setPeakBottomData = new double[yousosuu][yousosuu];
+    private static double[] peak = new double[yousosuu];
+    private static double[] bottom = new double[yousosuu];
+    private static double[] PPGacDerivative = new double[yousosuu];
+    private static double[] PPGacSecondDerivative = new double[yousosuu];
+    private static double[] SDPPGacA = new double[yousosuu];
+    private static double[] SDPPGacB = new double[yousosuu];
 
-    private static float[] SDPPGacC = new float[yousosuu];
+    private static double[] SDPPGacC = new double[yousosuu];
 
-    private static float[] SDPPGacD = new float[yousosuu];
+    private static double[] SDPPGacD = new double[yousosuu];
 
     private static int skip;
 
@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                     if (i != 0 && msec[i] == 0) {
                         break;
                     }
-                    PPGacDerivativeEntries.add(new Entry(msec[i], PPGacDerivative[i]));
+                    PPGacDerivativeEntries.add(new Entry((float) msec[i], (float)PPGacDerivative[i]));
                 }
                 LineDataSet PPGacDerivativeDataSet = new LineDataSet(PPGacDerivativeEntries, "DPPGac");
                 PPGacDerivativeDataSet.setColor(Color.BLUE);
@@ -284,16 +284,16 @@ public class MainActivity extends AppCompatActivity {
                     if (msec[i] == 0) {
                         break;
                     }
-                    PPGacSecondDerivativeEntries.add(new Entry(msec[i], PPGacSecondDerivative[i]));
+                    PPGacSecondDerivativeEntries.add(new Entry((float)msec[i], (float)PPGacSecondDerivative[i]));
 
                     if (SDPPGacA[i] != 0)
-                        sdPPGac_A_Entries.add(new Entry(msec[i], SDPPGacA[i]));
+                        sdPPGac_A_Entries.add(new Entry((float)msec[i], (float)SDPPGacA[i]));
                     if (SDPPGacB[i] != 0)
-                        sdPPGac_B_Entries.add(new Entry(msec[i], SDPPGacB[i]));
+                        sdPPGac_B_Entries.add(new Entry((float)msec[i], (float)SDPPGacB[i]));
                     if (SDPPGacC[i] != 0)
-                        sdPPGac_C_Entries.add(new Entry(msec[i], SDPPGacC[i]));
+                        sdPPGac_C_Entries.add(new Entry((float)msec[i], (float)SDPPGacC[i]));
                     if (SDPPGacD[i] != 0)
-                        sdPPGac_D_Entries.add(new Entry(msec[i], SDPPGacD[i]));
+                        sdPPGac_D_Entries.add(new Entry((float)msec[i], (float)SDPPGacD[i]));
 
                 }
 
@@ -373,11 +373,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else if (Id == Bt_PeakBottom) {
                 Intent intent = new Intent(MainActivity.this, PeakBottomListActivity.class);
-                float[] peakData = new float[yousosuu];
-                float[] peakPressureData = new float[yousosuu];
-                float[] peakTimeData = new float[yousosuu];
-                float[] bottomData = new float[yousosuu];
-                float[] bottomTimeData = new float[yousosuu];
+                double[] peakData = new double[yousosuu];
+                double[] peakPressureData = new double[yousosuu];
+                double[] peakTimeData = new double[yousosuu];
+                double[] bottomData = new double[yousosuu];
+                double[] bottomTimeData = new double[yousosuu];
                 for (int i = 0; i < setPeakBottomData.length; i++) {
                     for (int j = 0; j < 5; j++) {
                         switch (j) {
@@ -478,9 +478,10 @@ public class MainActivity extends AppCompatActivity {
                 count1++;
             }
             showGraph();
-            PPGacDerivative = Derivative(FIRFilter(PPGraw));
-            PPGacSecondDerivative = Derivative(FIRFilter(PPGacDerivative));
-            SDPPGacDetection(PPGacSecondDerivative);
+            PPGraw = FIRPPGacFilter(PPGraw);
+            PPGacDerivative = FIRFilter(Derivative(PPGraw));
+            PPGacSecondDerivative = FIRFilter(Derivative(PPGacDerivative));
+            //SDPPGacDetection(PPGacSecondDerivative);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception ex) {
@@ -545,9 +546,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (peak[i] != 0)
-                peakEntry.add(new Entry(msec[i], peak[i]));
+                peakEntry.add(new Entry((float)msec[i], (float)peak[i]));
             if (bottom[i] != 0)
-                bottomEntry.add(new Entry(msec[i], bottom[i]));
+                bottomEntry.add(new Entry((float)msec[i], (float)bottom[i]));
 
         }
         LineDataSet peakdataSet = new LineDataSet(peakEntry,"");
@@ -564,7 +565,7 @@ public class MainActivity extends AppCompatActivity {
             if (i != 0 && msec[i] == 0) {
                 break;
             }
-            presuureentries.add(new Entry(msec[i], pressure[i]));
+            presuureentries.add(new Entry((float)msec[i], (float)pressure[i]));
         }
         LineDataSet pressuredataSet = new LineDataSet(presuureentries, "Pressure");
         pressuredataSet.setColor(Color.BLUE);
@@ -576,7 +577,7 @@ public class MainActivity extends AppCompatActivity {
             if (i != 0 && msec[i] == 0) {
                 break;
             }
-            PPGdcentries.add(new Entry(msec[i], PPGdc[i]));
+            PPGdcentries.add(new Entry((float)msec[i], (float)PPGdc[i]));
         }
         LineDataSet PPGdcdataSet = new LineDataSet(PPGdcentries, "PPGdc");
         PPGdcdataSet.setColor(Color.BLUE);
@@ -587,7 +588,7 @@ public class MainActivity extends AppCompatActivity {
             if (i != 0 && msec[i] == 0) {
                 break;
             }
-            PPGrawentries.add(new Entry(msec[i], PPGraw[i]));
+            PPGrawentries.add(new Entry((float)msec[i], (float)PPGraw[i]));
         }
         LineDataSet PPGrawdataSet = new LineDataSet(PPGrawentries, "PPGac");
         PPGrawdataSet.setColor(Color.BLUE);
@@ -626,34 +627,62 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    public float[] Derivative(float[] PPGacData) {
-        float[] derivativeArray = new float[yousosuu];
+    public double[] Derivative(double[] PPGacData) {
+        double[] derivativeArray = new double[yousosuu];
         for (int i = 1; i < msec.length -1; i++) {// 中心差分を使用
             derivativeArray[i] = (float) ((PPGacData[i + 1] - PPGacData[i - 1]) / ((msec[i + 1] - msec[i - 1]) * 0.001));
         }
         return derivativeArray;
     }
-
-    public float[] FIRFilter(float[] PPGacData){
-        float samplingFrequency = 100;
-        float cutoffFrequency = 12;
-        float omega = (float) (2 * Math.PI * cutoffFrequency/samplingFrequency);
-        float alpha = (float) Math.sin(omega)/(2);
-        float a0 = alpha + 1;
-        float a1 = (float) (2 * Math.cos(omega));
-        float a2 = 1 - alpha;
-        float b0 = (float) ((1-Math.cos(omega))/2);
-        float b1 = (float) (1 - Math.cos(omega));
-        float b2 = (float) (1 - Math.cos(omega));
-        float[] previousOutput = {0, 0};
-        float[] previousInput =  {0, 0};
-        float[] FIRFilterArray = new float[yousosuu];
+    public double[] FIRPPGacFilter(double[] PPGacData){
+        double samplingFrequency = 100;
+        double cutoffFrequency = 15;
+        double omega = (2 * Math.PI * cutoffFrequency/samplingFrequency);
+        double alpha =  Math.sin(omega)/(2);
+        double a0 = alpha + 1;
+        double a1 =  (2 * Math.cos(omega));
+        double a2 = 1 - alpha;
+        double b0 =  ((1-Math.cos(omega))/2);
+        double b1 =  (1 - Math.cos(omega));
+        double b2 =  (1 - Math.cos(omega));
+        double[] previousOutput = {0, 0};
+        double[] previousInput =  {0, 0};
+        double[] FIRFilterArray = new double[yousosuu];
         for (int i = 0;i < msec.length;i++){
             FIRFilterArray[i] = (b0/a0*PPGacData[i])+(b1/a0*previousInput[0])+(b2/a0*previousInput[1])-(a1/a0*previousOutput[0])-(a2/a0*previousOutput[1]);
-            previousInput[1] = previousInput[0];
-            previousInput[0] = PPGacData[i];
-            previousOutput[1] = previousOutput[0];
-            previousOutput[0] = FIRFilterArray[i];
+            if(i==0){
+                previousInput[0] = PPGacData[i];
+                previousOutput[0] = FIRFilterArray[i];
+            }
+            if (i>1) {
+                previousInput[1] = previousInput[0];
+                previousInput[0] = PPGacData[i];
+                previousOutput[1] = previousOutput[0];
+                previousOutput[0] = FIRFilterArray[i];
+            }
+        }
+        return FIRFilterArray;
+    }
+    public double[] FIRFilter(double[] PPGacData){
+        double samplingFrequency = 100;
+        double cutoffFrequency = 12;
+        double omega = (2 * Math.PI * cutoffFrequency/samplingFrequency);
+        double alpha =  Math.sin(omega)/(2);
+        double a0 = alpha + 1;
+        double a1 =  (2 * Math.cos(omega));
+        double a2 = 1 - alpha;
+        double b0 =  ((1-Math.cos(omega))/2);
+        double b1 =  (1 - Math.cos(omega));
+        double b2 =  (1 - Math.cos(omega));
+        double[] previousOutput = {0, 0};
+        double[] previousInput =  {0, 0};
+        double[] FIRFilterArray = new double[yousosuu];
+        for (int i = 0;i < msec.length;i++){
+            FIRFilterArray[i] = (b0/a0*PPGacData[i])+(b1/a0*previousInput[0])+(b2/a0*previousInput[1])-(a1/a0*previousOutput[0])-(a2/a0*previousOutput[1]);
+                previousInput[1] = previousInput[0];
+                previousInput[0] = PPGacData[i];
+                previousOutput[1] = previousOutput[0];
+                previousOutput[0] = FIRFilterArray[i];
         }
         return FIRFilterArray;
     }
